@@ -1,17 +1,39 @@
 import moment from 'moment';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setHeader } from '../redux/salesSlice';
+import { setHeader, setNameError, setVrNoError } from '../redux/salesSlice';
+import { validateName, validateNumber } from '../common/validations';
 
 const HeaderSection = () => {
     const dispatch = useDispatch();
-    const header = useSelector(state => state.sales.header)
+    const header = useSelector(state => state.sales.header);
     const details = useSelector(state => state.sales.details);
+    const nameError = useSelector(state => state.sales.nameError);
+    const vrNoError = useSelector(state => state.sales.vrNoError);
 
     // State to manage sales header inputs
     const [vrNo, setVrNo] = useState('');
     const [acName, setAcName] = useState('');
     const [status, setStatus] = useState('A');
+    // State to manage errors
+    // const [nameError, setNameError] = useState({});
+    // const [vrNoError, setVrNoError] = useState('');
+
+    // Handle ac name validation
+    const handleNameChange = (e) => {
+        const newName = e.target.value;
+        setAcName(newName);
+        const errors = validateName(newName);
+        e.target.value ? dispatch(setNameError(errors)) : dispatch(setNameError({}));
+    }
+
+    // Handle voucher no validation
+    const handleVrNoChange = (e) => {
+        const newVrNo = e.target.value;
+        setVrNo(newVrNo);
+        const errors = validateNumber(newVrNo) ? '' : 'Voucher no must be a valid number';
+        e.target.value ? dispatch(setVrNoError(errors)) : dispatch(setVrNoError(''));
+    }
 
     // UseEffect to dispatch header data when any of the inputs change
     useEffect(() => {
@@ -26,7 +48,7 @@ const HeaderSection = () => {
     }, [vrNo, acName, status, dispatch]);
 
     useEffect(() => {
-        console.log(header)
+        // console.log(header)
         if (Object.keys(header).length === 0 || (header.vr_no === undefined && header.ac_name === undefined)) {
             setVrNo('');   // Reset VrNo
             setAcName('');  // Reset Account Name
@@ -48,12 +70,15 @@ const HeaderSection = () => {
                     <div>
                         <label className='font-semibold'>Vr No: </label>
                         <input
-                            type="text"
+                            type="number"
                             value={vrNo}
                             // Update the local state
-                            onChange={(e) => setVrNo(e.target.value)}
-                            className='p-1 border border-gray-300 rounded-md outline-none'
+                            onChange={(e) => handleVrNoChange(e)}
+                            className={`p-1 border rounded-md outline-none ${vrNoError ? 'border-red-500' : `${vrNo && !vrNoError ? 'border-green-500' : 'border-gray-300'}`}`}
                         />
+                        <div>
+                            {vrNoError && <p className='text-red-500 text-xs'>{vrNoError}</p>}
+                        </div>
                     </div>
                     <div>
                         <label className='font-semibold'>Vr Date: </label>
@@ -78,9 +103,13 @@ const HeaderSection = () => {
                             type="text"
                             value={acName}
                             // Update the local state
-                            onChange={(e) => setAcName(e.target.value)}
-                            className='p-1 border border-gray-300 rounded-md outline-none'
+                            onChange={(e) => handleNameChange(e)}
+                            className={`p-1 border rounded-md outline-none ${Object.keys(nameError).length ? 'border-red-500' : `${acName && Object.keys(nameError).length === 0 ? 'border-green-500' : 'border-gray-300'}`}`}
                         />
+                        <div>
+                            {nameError.length && <p className='text-red-500 text-xs'>{nameError.length}</p>}
+                            {nameError.alphabet && <p className='text-red-500 text-xs'>{nameError.alphabet}</p>}
+                        </div>
                     </div>
                     <div>
                         <label className='font-semibold'>Ac Amt: </label>

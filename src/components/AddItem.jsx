@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import makeRequest from '../common/axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { addDetails } from '../redux/salesSlice';
+import { toast } from 'react-toastify';
+import { validateNumber } from '../common/validations';
 
 const AddItem = ({ close }) => {
   // State for manage items details
@@ -14,6 +16,26 @@ const AddItem = ({ close }) => {
   const [price, setPrice] = useState(0);
   // State for manage quantity 
   const [qty, setQty] = useState(1);
+
+  // State to manage errors
+  const [priceError, setPriceError] = useState('');
+  const [qtyError, setQtyError] = useState('');
+
+  // Handler price validation
+  const handlePriceChange = (e) => {
+    const newPrice = e.target.value;
+    setPrice(newPrice);
+    const errors = validateNumber(newPrice) ? '' : 'Price must be a valid number';
+    e.target.value ? setPriceError(errors) : setPriceError('');
+  }
+
+  // Handler qty validation
+  const handleQtyChange = (e) => {
+    const newQty = e.target.value;
+    setQty(newQty);
+    const errors = validateNumber(newQty) ? '' : 'Quantity must be a valid number';
+    e.target.value ? setQtyError(errors) : setQtyError('');
+  }
 
   const dispatch = useDispatch();
   const header = useSelector(state => state.sales.header);
@@ -33,11 +55,6 @@ const AddItem = ({ close }) => {
     setDescription(e.target.value);
   };
 
-  // Handler for price change
-  const handlePrice = (e) => {
-    setPrice(e.target.value);
-  };
-
   // Handler for quantity change
   const handleQuantity = (e) => {
     setQty(e.target.value);
@@ -46,17 +63,22 @@ const AddItem = ({ close }) => {
   // Handler for form submit
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const detailsData = {
-      vr_no: header.vr_no,
-      item_code: selectedItem.item_code,
-      item_name: selectedItem.item_name,
-      description,
-      qty,
-      rate: price
-  };
-  dispatch(addDetails(detailsData));
-  close();
+    if (!selectedItem || !description || !price > 0 || !qty > 0) {
+      toast.error('Please fill all the fields')
+    } else if (priceError || qtyError) {
+      toast.error('Please provide valid details');
+    } else {
+      const detailsData = {
+        vr_no: header.vr_no,
+        item_code: selectedItem.item_code,
+        item_name: selectedItem.item_name,
+        description,
+        qty,
+        rate: price
+      };
+      dispatch(addDetails(detailsData));
+      close();
+    }
   }
 
   // Function for fetch item code and item name
@@ -88,7 +110,7 @@ const AddItem = ({ close }) => {
           <label>Item: </label>
           <select
             onChange={handleSelectChange}
-            className='p-1 border border-gray-300 rounded-md outline-none'>
+            className={`p-1 border border-gray-300 rounded-md outline-none ${selectedItem ? 'border-green-500' : ''}`}>
             <option value={''}>Select item</option>
             {
               items.map((item, index) => (
@@ -109,7 +131,7 @@ const AddItem = ({ close }) => {
             <textarea
               value={description}
               onChange={handleDescription}
-              className='border h-28 rounded-md p-2 text-sm outline-none resize-none'
+              className={`border h-28 rounded-md p-2 text-sm outline-none resize-none ${description && 'border-green-500'}`}
               placeholder='Work description'
             />
           </div>
@@ -117,20 +139,26 @@ const AddItem = ({ close }) => {
           <div>
             <label className='font-semibold'>Price: </label>
             <input
-              onChange={handlePrice}
+              onChange={handlePriceChange}
               type="number"
-              className='p-1 border border-gray-300 rounded-md outline-none mb-2'
+              className={`p-1 border rounded-md outline-none mb-2 ${priceError ? 'border-red-500' : `${price && !priceError ? 'border-green-500' : 'border-gray-300'}`}`}
             />
+            <div>
+              {priceError && <p className='text-red-500 text-xs'>{priceError}</p>}
+            </div>
           </div>
           {/* Rate */}
           <div>
             <label className='font-semibold'>Quantity: </label>
             <input
-              onChange={handleQuantity}
+              onChange={handleQtyChange}
               value={qty}
               type="number"
-              className='p-1 border border-gray-300 rounded-md outline-none mb-2'
+              className={`p-1 border rounded-md outline-none mb-2 ${qtyError ? 'border-red-500' : `${qty && !qtyError ? 'border-green-500' : 'border-gray-300'}`}`}
             />
+            <div>
+              {qtyError && <p className='text-red-500 text-xs'>{qtyError}</p>}
+            </div>
           </div>
           {/* Add button */}
           <button className='bg-blue-500 hover:bg-blue-600 active:bg-blue-700 px-2 py-1 text-white rounded-md w-full'>Add item</button>

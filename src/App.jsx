@@ -4,6 +4,9 @@ import DetailsSection from './components/DetailsSection';
 import AddItem from './components/AddItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { resetSales } from './redux/salesSlice';
+import PrintableComponent from './components/PrintableComponent';
+import { usePrint } from 'print-react-component';
+import { toast } from 'react-toastify';
 
 const App = () => {
   // State for managing the visibility of 'add new item' popup
@@ -11,10 +14,28 @@ const App = () => {
 
   const header = useSelector(state => state.sales.header);
   const details = useSelector(state => state.sales.details);
+  const nameError = useSelector(state => state.sales.nameError);
+  const vrNoError = useSelector(state => state.sales.vrNoError);
 
-  const printFn = () => {
-    console.log(header)
-    console.log(details)
+
+  // Get the print-related functions from usePrint
+  const { holder, printReactNode } = usePrint();
+  // Handle print function
+  const handlePrint = () => {
+    if (header && Object.keys(header).length > 0 && details && details.length > 0) {
+      // Check if header has `vr_no` and `ac_name`, and no validation errors exist
+      const hasVrNoError = vrNoError && Object.keys(vrNoError).length > 0;
+      const hasNameError = nameError && Object.keys(nameError).length > 0;
+      if (header.vr_no && !hasVrNoError && header.ac_name && !hasNameError) {
+        printReactNode(
+          <PrintableComponent />
+        );
+      } else {
+        toast.error('Please provide valid details');
+      }
+    } else {
+      toast.error('Please fill all fields header and details');
+    }
   }
 
   // Function for close 'add new item' popup
@@ -25,6 +46,7 @@ const App = () => {
   const dispatch = useDispatch();
   return (
     <div className='flex py-6 gap-6 justify-center h-screen'>
+      {holder}
       <div className='flex flex-col gap-6'>
         <HeaderSection />
         <DetailsSection />
@@ -41,7 +63,7 @@ const App = () => {
         >Insert</button>
         <button className='bg-yellow-200 px-3 py-1 rounded-md'>Save</button>
         <button
-          onClick={printFn}
+          onClick={handlePrint}
           className='bg-yellow-200 px-3 py-1 rounded-md'>Print</button>
       </div>
       {/* Popup for add a new item, renders only when open add is true */}

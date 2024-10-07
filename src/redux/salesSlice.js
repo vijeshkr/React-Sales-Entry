@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     header: {},
     details: [],
+    nameError: {},
+    vrNoError: '',
 };
 
 const salesSlice = createSlice({
@@ -37,9 +39,17 @@ const salesSlice = createSlice({
         // Reducer to reset the sales state
         resetSales(state) {
             return initialState;
-        }
+        },
+        // Reducer to set ac name error
+        setNameError(state, action) {
+            state.nameError = action.payload;
+        },
+        // Reducer to set voucher no error
+        setVrNoError(state, action) {
+            state.vrNoError = action.payload;
+        },
     }
 });
 
-export const { setHeader, addDetails, removeDetails, resetSales } = salesSlice.actions;
+export const { setHeader, addDetails, removeDetails, resetSales, setNameError, setVrNoError } = salesSlice.actions;
 export default salesSlice.reducer;
