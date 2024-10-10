@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Initial state for the sales slice
 const initialState = {
     header: {},
     details: [],
     nameError: {},
-    vrNoError: '',
 };
 
 const salesSlice = createSlice({
@@ -13,6 +13,7 @@ const salesSlice = createSlice({
     reducers: {
         // Reducer to set header informations for the sale
         setHeader(state, action) {
+            // Merging current header state with the new payload
             state.header = {
                 ...state.header,
                 ...action.payload
@@ -20,23 +21,24 @@ const salesSlice = createSlice({
         },
         // Reducer to add new sale details
         addDetails(state, action) {
+            // Creating a new item with a unique serial number based on current details length
             const newItem = {
                 ...action.payload,
                 sr_no: state.details.length + 1
             };
             state.details.push(newItem);
         },
-        // Reducer to remove specific sale details
+        // Reducer to remove specific sale details by serial number
         removeDetails(state, action) {
             // Remove the item from the details
             state.details = state.details.filter((item) => item.sr_no !== action.payload);
 
             // Reassign serial numbers for the remaining items
             state.details.forEach((item, index) => {
-                item.sr_no = index + 1; // Reassign serial number
+                item.sr_no = index + 1;
             });
         },
-        // Reducer to reset the sales state
+        // Reducer to reset the sales state to its initial state
         resetSales(state) {
             return initialState;
         },
@@ -44,12 +46,8 @@ const salesSlice = createSlice({
         setNameError(state, action) {
             state.nameError = action.payload;
         },
-        // Reducer to set voucher no error
-        setVrNoError(state, action) {
-            state.vrNoError = action.payload;
-        },
     }
 });
 
-export const { setHeader, addDetails, removeDetails, resetSales, setNameError, setVrNoError } = salesSlice.actions;
+export const { setHeader, addDetails, removeDetails, resetSales, setNameError } = salesSlice.actions;
 export default salesSlice.reducer;
